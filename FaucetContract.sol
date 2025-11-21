@@ -6,6 +6,7 @@ contract FaucetContract{
   uint256 dripAmount= 0.02 ether;
   address payable public owner;
   event Claimed(address indexed user, uint256 amount);
+  event Deposited(address indexed from, uint256 amount);
   event Withdrawn(address indexed to, uint256 amount);
   bool private locked;
 
@@ -19,6 +20,10 @@ contract FaucetContract{
     locked = true;
     _;
     locked = false;
+  }
+
+  constructor() {
+    owner = payable(msg.sender);
   }
 
   //People can claim a small amount of tokens from this faucet
@@ -48,6 +53,12 @@ contract FaucetContract{
     dripAmount = newAmount;
   }
 
-  receive() external payable {}
+  receive() external payable {
+    emit Deposited(msg.sender, msg.value);
+  }
+
+  fallback() external payable {
+    emit Deposited(msg.sender, msg.value);
+  }
 
 }
