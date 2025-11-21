@@ -4,7 +4,22 @@ pragma solidity 0.8.30;
 contract FaucetContract{
   mapping(address => bool) public hasClaimed;
   uint256 dripAmount= 0.02 ether;
+  address payable public owner;
   event Claimed(address indexed user, uint256 amount);
+  event Withdrawn(address indexed to, uint256 amount);
+  bool private locked;
+
+  modifier onlyOwner(){
+    require(msg.sender == owner, "Not owner");
+    _;
+  }
+
+  modifier nonReentrant(){
+    require(!locked, "Reentrant");
+    locked = true;
+    _;
+    locked = false;
+  }
 
   //People can claim a small amount of tokens from this faucet
   function claim() external {
@@ -20,5 +35,19 @@ contract FaucetContract{
     require(sent, "Failed to send ether");
     emit Claimed(msg.sender, dripAmount);
   }
+
+  function withdraw(uint256 amount) external onlyOwner nonReentrant(){
+    require(address(this).balance >= amount, "Insufficient balance");
+    (bool sent, ) = owner.call{value: amount}("");
+    require(sent, "Withdraw failed");
+    emit Withdrawn(owner, amount);
+
+  }
+
+  function setDrip(uint256 newAmount) external onlyOwner{
+    dripAmount = newAmount;
+  }
+
+  receive() external payable {}
 
 }
