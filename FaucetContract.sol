@@ -10,11 +10,13 @@ contract FaucetContract{
   event Withdrawn(address indexed to, uint256 amount);
   bool private locked;
 
+  //modifier for owner role
   modifier onlyOwner(){
     require(msg.sender == owner, "Not owner");
     _;
   }
 
+  //nonReentrant to prevent reentrancy manually
   modifier nonReentrant(){
     require(!locked, "Reentrant");
     locked = true;
@@ -22,6 +24,7 @@ contract FaucetContract{
     locked = false;
   }
 
+  // Owner role without using openzeppelin standard
   constructor() {
     owner = payable(msg.sender);
   }
@@ -49,6 +52,7 @@ contract FaucetContract{
 
   }
 
+  // this function let's the owner of the contract set a drip amount
   function setDrip(uint256 newAmount) external onlyOwner{
     dripAmount = newAmount;
   }
